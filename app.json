@@ -1,5 +1,6 @@
 {
   "expo": {
+    "entryPoint": "App.js",
     "name": "interview-experience-app",
     "slug": "interview-experience-app",
     "version": "1.0.0",
@@ -20,11 +21,9 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
