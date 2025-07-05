@@ -53,11 +53,23 @@ class ApiService {
     });
   }
 
-  // 用户登录
+  // 用户登录（支持验证码登录和直接登录）
   async login(phone, code) {
     const response = await this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ phone, code }),
+    });
+    
+    // 保存令牌
+    this.setToken(response.access_token);
+    return response;
+  }
+
+  // 直接登录（无需验证码）
+  async directLogin(phone) {
+    const response = await this.request('/auth/direct-login', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
     });
     
     // 保存令牌

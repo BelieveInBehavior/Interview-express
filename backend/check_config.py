@@ -131,7 +131,7 @@ def main():
     redis_ok = test_redis_connection()
     
     # 检查其他配置
-    check_other_configs()
+    # check_other_configs()
     
     # 总结
     print("\n" + "=" * 50)

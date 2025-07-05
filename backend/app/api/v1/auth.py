@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from app.core.database import get_db
-from app.schemas.user import UserLogin, Token, User
+from app.schemas.user import UserLogin, DirectLogin, Token, User
 from app.services.user_service import user_service
 from app.services.sms_service import sms_service
 
@@ -55,24 +55,57 @@ async def send_sms_code(phone: str) -> Dict[str, Any]:
 @router.post("/login", response_model=Token)
 async def login(user_login: UserLogin, db: Session = Depends(get_db)):
     """
-    用户登录
+    用户登录（支持验证码登录和直接登录）
     
     Args:
-        user_login: 登录信息
+        user_login: 登录信息（验证码可选）
         db: 数据库会话
         
     Returns:
         Token: 访问令牌
     """
-    # 验证验证码
-    if not sms_service.verify_code(user_login.phone, user_login.code):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="验证码错误或已过期"
-        )
+    # 如果提供了验证码，则验证验证码
+    if user_login.code:
+        if not sms_service.verify_code(user_login.phone, user_login.code):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="验证码错误或已过期"
+            )
     
     # 获取或创建用户
     user = user_service.get_or_create_user(db, user_login.phone)
+    
+    # 创建访问令牌
+    access_token = user_service.create_access_token_for_user(user)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+
+@router.post("/direct-login", response_model=Token)
+async def direct_login(direct_login: DirectLogin, db: Session = Depends(get_db)):
+    """
+    直接登录（无需验证码）
+    
+    Args:
+        direct_login: 直接登录信息
+        db: 数据库会话
+        
+    Returns:
+        Token: 访问令牌
+    """
+    # 验证手机号格式
+    if not direct_login.phone.isdigit() or len(direct_login.phone) != 11:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="手机号格式不正确"
+        )
+    
+    # 获取或创建用户
+    user = user_service.get_or_create_user(db, direct_login.phone)
     
     # 创建访问令牌
     access_token = user_service.create_access_token_for_user(user)

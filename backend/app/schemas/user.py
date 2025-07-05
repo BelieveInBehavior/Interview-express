@@ -35,7 +35,11 @@ class User(UserInDB):
 
 class UserLogin(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
-    code: str = Field(..., min_length=4, max_length=6, description="短信验证码")
+    code: Optional[str] = Field(None, min_length=4, max_length=6, description="短信验证码（可选）")
+
+
+class DirectLogin(BaseModel):
+    phone: str = Field(..., min_length=11, max_length=11, description="手机号码")
 
 
 class Token(BaseModel):

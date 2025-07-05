@@ -39,7 +39,23 @@ export default function SmsCodeScreen({ navigation, route }) {
       // 登录成功，跳转到主页面
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Main' }],
+        routes: [{ name: '主页' }],
+      });
+    } catch (error) {
+      Alert.alert('登录失败', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDirectLogin = async () => {
+    setLoading(true);
+    try {
+      const response = await apiService.directLogin(phone);
+      // 直接登录成功，跳转到主页面
+      navigation.reset({
+        index: 0,
+        routes: [{ name: '主页' }],
       });
     } catch (error) {
       Alert.alert('登录失败', error.message);
@@ -53,6 +69,7 @@ export default function SmsCodeScreen({ navigation, route }) {
       <Text style={styles.logo}>面经快车</Text>
       <Text style={styles.title}>输入短信验证码</Text>
       <Text style={styles.desc}>已向您的手机 {phone?.slice(-4)} 发送验证码</Text>
+      
       <View style={styles.codeRow}>
         <TextInput
           style={styles.codeInput}
@@ -63,17 +80,45 @@ export default function SmsCodeScreen({ navigation, route }) {
           onChangeText={setCode}
         />
       </View>
+      
       <View style={styles.resendRow}>
         <TouchableOpacity disabled={timer > 0} onPress={handleResend}>
-          <Text style={[styles.resendText, timer > 0 && { color: '#bbb' }]}>重新发送{timer > 0 ? `（${timer}）` : ''}</Text>
+          <Text style={[styles.resendText, timer > 0 && { color: '#bbb' }]}>
+            重新发送{timer > 0 ? `（${timer}）` : ''}
+          </Text>
         </TouchableOpacity>
       </View>
+      
       <TouchableOpacity 
         style={[styles.nextBtn, loading && styles.nextBtnDisabled]} 
         onPress={handleNext}
         disabled={loading}
       >
-        <Text style={styles.nextBtnText}>{loading ? '登录中...' : '下一步'}</Text>
+        <Text style={styles.nextBtnText}>{loading ? '登录中...' : '验证登录'}</Text>
+      </TouchableOpacity>
+
+      {/* 直接登录选项 */}
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>或</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <TouchableOpacity 
+        style={[styles.directLoginBtn, loading && styles.directLoginBtnDisabled]} 
+        onPress={handleDirectLogin}
+        disabled={loading}
+      >
+        <Text style={styles.directLoginText}>
+          {loading ? '登录中...' : '直接登录（无需验证码）'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.backBtn} 
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.backBtnText}>返回修改手机号</Text>
       </TouchableOpacity>
     </View>
   );
@@ -91,4 +136,12 @@ const styles = StyleSheet.create({
   nextBtn: { backgroundColor: '#00C6AE', borderRadius: 8, marginTop: 8, marginBottom: 16, height: 48, justifyContent: 'center', alignItems: 'center' },
   nextBtnDisabled: { backgroundColor: '#ccc' },
   nextBtnText: { color: '#fff', fontSize: 20 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E5E5' },
+  dividerText: { marginHorizontal: 16, color: '#999', fontSize: 14 },
+  directLoginBtn: { backgroundColor: '#F6F7FB', borderRadius: 8, marginBottom: 16, height: 48, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E5E5E5' },
+  directLoginBtnDisabled: { backgroundColor: '#F0F0F0' },
+  directLoginText: { color: '#666', fontSize: 16 },
+  backBtn: { alignItems: 'center', marginTop: 20 },
+  backBtnText: { color: '#00C6AE', fontSize: 16 },
 }); 
