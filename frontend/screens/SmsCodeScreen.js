@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import apiService from '../services/api';
 
 export default function SmsCodeScreen({ navigation, route }) {
   const { phone } = route.params || {};
   const [code, setCode] = useState('');
   const [timer, setTimer] = useState(60);
+  const [loading, setLoading] = useState(false);
   const timerRef = useRef();
 
   useEffect(() => {
@@ -14,22 +16,36 @@ export default function SmsCodeScreen({ navigation, route }) {
     return () => clearTimeout(timerRef.current);
   }, [timer]);
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (timer > 0) return;
     setTimer(60);
-    Alert.alert('验证码已重新发送');
+    try {
+      await apiService.sendSmsCode(phone);
+      Alert.alert('验证码已重新发送');
+    } catch (error) {
+      Alert.alert('发送验证码失败', error.message);
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (code.length !== 4) {
       Alert.alert('请输入4位验证码');
       return;
     }
-    // mock登录成功
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Main' }],
-    });
+
+    setLoading(true);
+    try {
+      const response = await apiService.login(phone, code);
+      // 登录成功，跳转到主页面
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
+    } catch (error) {
+      Alert.alert('登录失败', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,8 +68,12 @@ export default function SmsCodeScreen({ navigation, route }) {
           <Text style={[styles.resendText, timer > 0 && { color: '#bbb' }]}>重新发送{timer > 0 ? `（${timer}）` : ''}</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-        <Text style={styles.nextBtnText}>下一步</Text>
+      <TouchableOpacity 
+        style={[styles.nextBtn, loading && styles.nextBtnDisabled]} 
+        onPress={handleNext}
+        disabled={loading}
+      >
+        <Text style={styles.nextBtnText}>{loading ? '登录中...' : '下一步'}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -69,5 +89,6 @@ const styles = StyleSheet.create({
   resendRow: { alignItems: 'center', marginBottom: 24 },
   resendText: { color: '#00C6AE', fontSize: 15 },
   nextBtn: { backgroundColor: '#00C6AE', borderRadius: 8, marginTop: 8, marginBottom: 16, height: 48, justifyContent: 'center', alignItems: 'center' },
+  nextBtnDisabled: { backgroundColor: '#ccc' },
   nextBtnText: { color: '#fff', fontSize: 20 },
 }); 

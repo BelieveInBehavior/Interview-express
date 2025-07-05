@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
-import { View, TextInput, FlatList, StyleSheet } from 'react-native';
-import { experiences } from '../mock/experiences';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import ExperienceCard from '../components/ExperienceCard';
+import apiService from '../services/api';
 
 export default function SearchScreen({ navigation }) {
   const [query, setQuery] = useState('');
-  const filtered = experiences.filter(
-    exp =>
-      exp.company.includes(query) ||
-      exp.position.includes(query) ||
-      exp.tags.some(tag => tag.includes(query))
-  );
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const performSearch = async (searchQuery) => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const results = await apiService.searchExperiences(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('搜索失败:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(query);
+    }, 500); // 防抖延迟
+
+    return () => clearTimeout(timeoutId);
+  }, [query]);
   return (
     <View style={styles.container}>
       <TextInput
@@ -19,8 +41,13 @@ export default function SearchScreen({ navigation }) {
         value={query}
         onChangeText={setQuery}
       />
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00C6AE" />
+        </View>
+      )}
       <FlatList
-        data={filtered}
+        data={searchResults}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <ExperienceCard
@@ -38,5 +65,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff', borderRadius: 8, padding: 10, marginBottom: 10, fontSize: 16,
     borderColor: '#eee', borderWidth: 1,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 1,
   },
 });

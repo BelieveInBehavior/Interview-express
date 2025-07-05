@@ -3,21 +3,52 @@ import { View, TextInput, Button, StyleSheet, Text, ScrollView, Alert } from 're
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import Slider from '@react-native-community/slider';
 import { launchImageLibrary } from 'react-native-image-picker';
+import apiService from '../services/api';
 
-export default function PublishScreen() {
+export default function PublishScreen({ navigation }) {
   const richText = useRef();
   const [company, setCompany] = useState('');
   const [position, setPosition] = useState('');
   const [content, setContent] = useState('');
   const [difficulty, setDifficulty] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!company || !position || !content) {
       Alert.alert('请填写完整信息');
       return;
     }
-    Alert.alert('发布成功', '（mock）你的经验已发布！');
-    setCompany(''); setPosition(''); setContent(''); setDifficulty(0);
+
+    setLoading(true);
+    try {
+      const experienceData = {
+        company,
+        position,
+        summary: content.substring(0, 100) + '...', // 简单的摘要
+        content,
+        difficulty,
+        tags: [] // 暂时为空，后续可以添加标签功能
+      };
+
+      await apiService.createExperience(experienceData);
+      Alert.alert('发布成功', '你的经验已发布！', [
+        {
+          text: '确定',
+          onPress: () => {
+            setCompany('');
+            setPosition('');
+            setContent('');
+            setDifficulty(0);
+            // 返回首页并刷新
+            navigation.navigate('首页');
+          }
+        }
+      ]);
+    } catch (error) {
+      Alert.alert('发布失败', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 图片插入处理
@@ -68,7 +99,12 @@ export default function PublishScreen() {
         ]}
         onPressAddImage={handleInsertImage}
       />
-      <Button title="发布" onPress={handleSubmit} color="#00C6AE" />
+      <Button 
+        title={loading ? "发布中..." : "发布"} 
+        onPress={handleSubmit} 
+        color="#00C6AE"
+        disabled={loading}
+      />
     </ScrollView>
   );
 }

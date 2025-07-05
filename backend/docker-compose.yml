@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: interview_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: interview_express
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: interview_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # FastAPI 应用
+  api:
+    build: .
+    container_name: interview_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/interview_express
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Celery Worker
+  celery_worker:
+    build: .
+    container_name: interview_celery_worker
+    environment:
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/interview_express
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - .:/app
+    command: celery -A app.core.celery_app worker --loglevel=info
+
+  # Celery Beat（定时任务）
+  celery_beat:
+    build: .
+    container_name: interview_celery_beat
+    environment:
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/interview_express
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - .:/app
+    command: celery -A app.core.celery_app beat --loglevel=info
+
+volumes:
+  mysql_data:
+  redis_data: 

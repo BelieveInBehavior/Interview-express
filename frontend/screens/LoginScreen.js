@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import apiService from '../services/api';
 
 export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!/^1\d{10}$/.test(phone)) {
       Alert.alert('请输入有效的手机号');
       return;
@@ -14,7 +16,16 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('请先同意用户协议和隐私政策');
       return;
     }
-    navigation.navigate('验证码', { phone });
+
+    setLoading(true);
+    try {
+      await apiService.sendSmsCode(phone);
+      navigation.navigate('验证码', { phone });
+    } catch (error) {
+      Alert.alert('发送验证码失败', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,8 +49,12 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         )}
       </View>
-      <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-        <Text style={styles.nextBtnText}>下一步</Text>
+      <TouchableOpacity 
+        style={[styles.nextBtn, loading && styles.nextBtnDisabled]} 
+        onPress={handleNext}
+        disabled={loading}
+      >
+        <Text style={styles.nextBtnText}>{loading ? '发送中...' : '下一步'}</Text>
       </TouchableOpacity>
       <View style={styles.protocolRow}>
         <TouchableOpacity onPress={() => setAgree(!agree)}>
@@ -75,6 +90,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontSize: 18, paddingVertical: 12, backgroundColor: 'transparent' },
   clearBtn: { fontSize: 22, color: '#bbb', padding: 4 },
   nextBtn: { backgroundColor: '#00C6AE', borderRadius: 8, marginTop: 8, marginBottom: 16, height: 48, justifyContent: 'center', alignItems: 'center' },
+  nextBtnDisabled: { backgroundColor: '#ccc' },
   nextBtnText: { color: '#fff', fontSize: 20 },
   protocolRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   checkbox: { fontSize: 18, color: '#00C6AE', marginRight: 6 },
