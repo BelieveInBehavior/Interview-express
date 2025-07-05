@@ -13,4 +13,7 @@ pydantic-settings==2.1.0
 python-dotenv==1.0.0
 httpx==0.25.2
 pytest==7.4.3
-pytest-asyncio==0.21.1 
+pytest-asyncio==0.21.1
+alibabacloud-dysmsapi20170525==2.0.24
+alibabacloud-tea-openapi==0.3.8
+alibabacloud-tea-util==0.3.11 

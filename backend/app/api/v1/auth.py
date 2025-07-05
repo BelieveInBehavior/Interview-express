@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import Dict, Any
 from app.core.database import get_db
 from app.schemas.user import UserLogin, Token, User
 from app.services.user_service import user_service
@@ -9,32 +10,65 @@ router = APIRouter()
 
 
 @router.post("/send-code")
-async def send_sms_code(phone: str):
-    """发送短信验证码"""
+async def send_sms_code(phone: str) -> Dict[str, Any]:
+    """
+    发送短信验证码
+    
+    Args:
+        phone: 手机号码
+        
+    Returns:
+        Dict: 发送结果
+    """
+    # 验证手机号格式
     if not phone.isdigit() or len(phone) != 11:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid phone number"
+            detail="手机号格式不正确"
         )
     
-    success = sms_service.send_code(phone)
-    if not success:
+    # 检查发送频率限制
+    if not sms_service.check_send_frequency(phone, limit_minutes=1):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="发送过于频繁，请稍后再试"
+        )
+    
+    # 发送验证码
+    result = sms_service.send_code(phone)
+    
+    if not result.get("success", False):
+        error_msg = result.get("message", "发送失败")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to send SMS code"
+            detail=f"短信发送失败: {error_msg}"
         )
     
-    return {"message": "SMS code sent successfully"}
+    return {
+        "message": "验证码发送成功",
+        "success": True,
+        "request_id": result.get("request_id", ""),
+        "biz_id": result.get("biz_id", "")
+    }
 
 
 @router.post("/login", response_model=Token)
 async def login(user_login: UserLogin, db: Session = Depends(get_db)):
-    """用户登录"""
+    """
+    用户登录
+    
+    Args:
+        user_login: 登录信息
+        db: 数据库会话
+        
+    Returns:
+        Token: 访问令牌
+    """
     # 验证验证码
     if not sms_service.verify_code(user_login.phone, user_login.code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code"
+            detail="验证码错误或已过期"
         )
     
     # 获取或创建用户
@@ -50,8 +84,53 @@ async def login(user_login: UserLogin, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/send-status/{phone}")
+async def get_send_status(phone: str) -> Dict[str, Any]:
+    """
+    获取发送状态
+    
+    Args:
+        phone: 手机号码
+        
+    Returns:
+        Dict: 发送状态信息
+    """
+    if not phone.isdigit() or len(phone) != 11:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="手机号格式不正确"
+        )
+    
+    status_info = sms_service.get_send_status(phone)
+    return {
+        "phone": phone,
+        "has_code": status_info["has_code"],
+        "has_frequency_limit": status_info["has_frequency_limit"],
+        "code_ttl": status_info["code_ttl"],
+        "frequency_ttl": status_info["frequency_ttl"]
+    }
+
+
 @router.get("/test-code/{phone}")
-async def get_test_code(phone: str):
-    """获取测试验证码（仅用于开发环境）"""
+async def get_test_code(phone: str) -> Dict[str, Any]:
+    """
+    获取测试验证码（仅用于开发环境）
+    
+    Args:
+        phone: 手机号码
+        
+    Returns:
+        Dict: 测试验证码
+    """
+    if not phone.isdigit() or len(phone) != 11:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="手机号格式不正确"
+        )
+    
     code = sms_service.get_code(phone)
-    return {"phone": phone, "code": code} 
+    return {
+        "phone": phone, 
+        "code": code,
+        "has_code": bool(code)
+    } 
