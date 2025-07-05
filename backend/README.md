@@ -62,10 +62,46 @@ pip install -r requirements.txt
 复制环境变量文件并修改配置：
 
 ```bash
+# 复制基础配置
 cp env.example .env
+
+# 或者复制本地开发配置（推荐）
+cp env.local.example .env
 ```
 
-修改 `.env` 文件中的数据库和Redis配置。
+编辑 `.env` 文件，配置数据库和Redis连接信息：
+
+#### 数据库配置方式
+
+**方式一：分别配置（推荐）**
+```env
+DATABASE_HOST=localhost
+DATABASE_PORT=3306
+DATABASE_USER=root
+DATABASE_PASSWORD=your_password
+DATABASE_NAME=interview_express
+DATABASE_TEST_NAME=interview_express_test
+```
+
+**方式二：直接URL**
+```env
+DATABASE_URL_DIRECT=mysql+pymysql://user:password@host:port/database
+```
+
+#### Redis配置方式
+
+**方式一：分别配置（推荐）**
+```env
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+# REDIS_PASSWORD=your_redis_password
+```
+
+**方式二：直接URL**
+```env
+REDIS_URL=redis://:password@host:port/db
+```
 
 ### 3. 数据库设置
 
@@ -81,7 +117,21 @@ CREATE DATABASE interview_express CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_
 alembic upgrade head
 ```
 
-### 4. 启动服务
+### 4. 配置检查
+
+在启动服务前，可以运行配置检查工具：
+
+```bash
+python check_config.py
+```
+
+这个工具会检查：
+- 环境变量文件是否存在
+- 数据库连接是否正常
+- Redis 连接是否正常
+- 其他配置是否正确
+
+### 5. 启动服务
 
 #### 启动 FastAPI 服务
 

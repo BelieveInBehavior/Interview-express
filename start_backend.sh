@@ -36,6 +36,16 @@ if [ ! -f ".env" ]; then
     echo "📝 创建环境变量文件..."
     cp env.example .env
     echo "⚠️  请编辑 .env 文件配置数据库和Redis连接信息"
+    echo "   然后重新运行此脚本"
+    exit 1
+fi
+
+# 运行配置检查
+echo "🔧 检查配置..."
+python check_config.py
+if [ $? -ne 0 ]; then
+    echo "❌ 配置检查失败，请修复配置问题后重试"
+    exit 1
 fi
 
 # 检查数据库连接
@@ -44,18 +54,23 @@ python -c "
 import pymysql
 from app.core.config import settings
 try:
+    # 使用配置中的数据库连接信息
     conn = pymysql.connect(
-        host='localhost',
-        user='root',
-        password='password',
-        database='interview_express',
-        port=3306
+        host=settings.database_host,
+        user=settings.database_user,
+        password=settings.database_password,
+        database=settings.database_name,
+        port=settings.database_port
     )
     print('✅ 数据库连接成功')
+    print(f'   主机: {settings.database_host}:{settings.database_port}')
+    print(f'   数据库: {settings.database_name}')
+    print(f'   用户: {settings.database_user}')
     conn.close()
 except Exception as e:
     print(f'❌ 数据库连接失败: {e}')
-    print('请确保 MySQL 服务已启动且配置正确')
+    print('请检查 .env 文件中的数据库配置')
+    print('确保 MySQL 服务已启动且配置正确')
     exit(1)
 "
 
