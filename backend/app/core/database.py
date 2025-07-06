@@ -4,14 +4,14 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 # Get database URL (prefer direct URL if provided, otherwise construct from components)
-database_url = settings.database_url_direct or settings.database_url
+database_url = settings.DATABASE_URL_DIRECT or settings.database_url
 
 # Create database engine
 engine = create_engine(
     database_url,
     pool_pre_ping=True,
     pool_recycle=300,
-    echo=settings.debug
+    echo=settings.DEBUG
 )
 
 # Create SessionLocal class

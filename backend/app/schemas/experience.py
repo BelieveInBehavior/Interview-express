@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.user import User
 
 
 class ExperienceBase(BaseModel):
@@ -27,16 +28,30 @@ class ExperienceUpdate(BaseModel):
 
 class ExperienceInDB(ExperienceBase):
     id: int
-    user_phone: str
+    user_id: int
+    tags: Optional[List[str]] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def parse_tags(cls, v):
+        import json
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return v
+        try:
+            return json.loads(v)
+        except Exception:
+            return []
     
     class Config:
         from_attributes = True
 
 
 class Experience(ExperienceInDB):
-    user: Optional[dict] = None  # 用户信息
+    user: Optional[User] = None  # 用户信息
 
 
 class ExperienceList(BaseModel):

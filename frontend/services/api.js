@@ -46,18 +46,18 @@ class ApiService {
   }
 
   // 发送短信验证码
-  async sendSmsCode(phone) {
-    return this.request('/auth/send-code', {
-      method: 'POST',
-      body: JSON.stringify({ phone }),
-    });
-  }
+  // async sendSmsCode(phone) {
+  //   return this.request('/auth/send-code', {
+  //     method: 'POST',
+  //     body: JSON.stringify({ phone }),
+  //   });
+  // }
 
-  // 用户登录（支持验证码登录和直接登录）
-  async login(phone, code) {
+  // 登录（带验证码）
+  async login(phone, username, code) {
     const response = await this.request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ phone, code }),
+      body: JSON.stringify({ phone, username, code }),
     });
     
     // 保存令牌
@@ -66,10 +66,10 @@ class ApiService {
   }
 
   // 直接登录（无需验证码）
-  async directLogin(phone) {
+  async directLogin(phone, username) {
     const response = await this.request('/auth/direct-login', {
       method: 'POST',
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ phone, username }),
     });
     
     // 保存令牌
@@ -120,9 +120,9 @@ class ApiService {
   }
 
   // 获取测试验证码（仅开发环境）
-  async getTestCode(phone) {
-    return this.request(`/auth/test-code/${phone}`);
-  }
+  // async getTestCode(phone) {
+  //   return this.request(`/auth/test-code/${phone}`);
+  // }
 }
 
 // 创建全局 API 服务实例

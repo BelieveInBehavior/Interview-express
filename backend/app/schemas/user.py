@@ -4,8 +4,8 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    phone: str = Field(..., min_length=11, max_length=11, description="手机号码")
-    username: Optional[str] = Field(None, max_length=50, description="用户名")
+    phone: str = Field(..., description="手机号码", min_length=11, max_length=11)
+    username: str = Field(..., description="用户名", min_length=1, max_length=50)
     avatar: Optional[str] = Field(None, description="头像URL")
     bio: Optional[str] = Field(None, description="个人简介")
 
@@ -21,6 +21,7 @@ class UserUpdate(BaseModel):
 
 
 class UserInDB(UserBase):
+    id: int
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -30,21 +31,28 @@ class UserInDB(UserBase):
 
 
 class User(UserInDB):
-    pass
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
 
 
 class UserLogin(BaseModel):
-    phone: str = Field(..., min_length=11, max_length=11)
-    code: Optional[str] = Field(None, min_length=4, max_length=6, description="短信验证码（可选）")
+    phone: str = Field(..., description="手机号码", min_length=11, max_length=11)
+    username: str = Field(..., description="用户名", min_length=1, max_length=50)
+    code: Optional[str] = Field(None, description="短信验证码（可选）", min_length=4, max_length=6)
 
 
 class DirectLogin(BaseModel):
-    phone: str = Field(..., min_length=11, max_length=11, description="手机号码")
+    phone: str = Field(..., description="手机号码", min_length=11, max_length=11)
+    # username: str = Field(..., description="用户名", min_length=1, max_length=50)
 
 
 class Token(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: str
     user: User
 
 

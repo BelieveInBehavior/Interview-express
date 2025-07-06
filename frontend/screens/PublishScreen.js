@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, ScrollView, Alert } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import Slider from '@react-native-community/slider';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -12,9 +12,11 @@ export default function PublishScreen({ navigation }) {
   const [content, setContent] = useState('');
   const [difficulty, setDifficulty] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState('');
 
   const handleSubmit = async () => {
-    if (!company || !position || !content) {
+    if (!company || !position) {
+      console.log('请填写完整信息');
       Alert.alert('请填写完整信息');
       return;
     }
@@ -25,7 +27,7 @@ export default function PublishScreen({ navigation }) {
         company,
         position,
         summary: content.substring(0, 100) + '...', // 简单的摘要
-        content,
+        content:content,
         difficulty,
         tags: [] // 暂时为空，后续可以添加标签功能
       };
@@ -44,6 +46,8 @@ export default function PublishScreen({ navigation }) {
           }
         }
       ]);
+
+      navigation.navigate('首页');
     } catch (error) {
       Alert.alert('发布失败', error.message);
     } finally {
@@ -113,4 +117,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 16 },
   input: { backgroundColor: '#F6F7FB', borderRadius: 8, padding: 10, marginBottom: 10, fontSize: 16 },
   rich: { minHeight: 120, borderColor: '#eee', borderWidth: 1, borderRadius: 8, marginBottom: 10 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  clearBtn: { fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
 });

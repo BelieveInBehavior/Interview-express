@@ -14,7 +14,7 @@ class Experience(Base):
     content = Column(Text, nullable=False)
     difficulty = Column(Float, default=0.0)  # 难度评分 0-5
     tags = Column(Text, nullable=True)  # JSON格式存储标签
-    user_phone = Column(String(11), ForeignKey("users.phone"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

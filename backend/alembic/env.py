@@ -37,7 +37,7 @@ def run_migrations_offline() -> None:
 
     """
     # Get database URL (prefer direct URL if provided, otherwise construct from components)
-    database_url = settings.database_url_direct or settings.database_url
+    database_url = settings.DATABASE_URL_DIRECT or settings.database_url
     context.configure(
         url=database_url,
         target_metadata=target_metadata,
@@ -58,7 +58,7 @@ def run_migrations_online() -> None:
     """
     configuration = config.get_section(config.config_ini_section)
     # Get database URL (prefer direct URL if provided, otherwise construct from components)
-    database_url = settings.database_url_direct or settings.database_url
+    database_url = settings.DATABASE_URL_DIRECT or settings.database_url
     configuration["sqlalchemy.url"] = database_url
     connectable = engine_from_config(
         configuration,

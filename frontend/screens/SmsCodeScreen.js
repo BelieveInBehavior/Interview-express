@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } fr
 import apiService from '../services/api';
 
 export default function SmsCodeScreen({ navigation, route }) {
-  const { phone } = route.params || {};
+  const { phone, username } = route.params || {};
   const [code, setCode] = useState('');
   const [timer, setTimer] = useState(60);
   const [loading, setLoading] = useState(false);
@@ -35,11 +35,11 @@ export default function SmsCodeScreen({ navigation, route }) {
 
     setLoading(true);
     try {
-      const response = await apiService.login(phone, code);
+      const response = await apiService.login(phone, username, code);
       // 登录成功，跳转到主页面
       navigation.reset({
         index: 0,
-        routes: [{ name: '主页' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (error) {
       Alert.alert('登录失败', error.message);
@@ -51,11 +51,11 @@ export default function SmsCodeScreen({ navigation, route }) {
   const handleDirectLogin = async () => {
     setLoading(true);
     try {
-      const response = await apiService.directLogin(phone);
+      const response = await apiService.directLogin(phone, username);
       // 直接登录成功，跳转到主页面
       navigation.reset({
         index: 0,
-        routes: [{ name: '主页' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (error) {
       Alert.alert('登录失败', error.message);

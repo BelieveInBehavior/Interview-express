@@ -16,7 +16,7 @@ export default function ExperienceCard({ experience, onPress }) {
         ))}
       </View>
       <View style={styles.footer}>
-        <Text style={styles.user}>{experience.user.username}</Text>
+        <Text style={styles.user}>{experience.user?.username || "匿名用户"}</Text>
         <Text style={styles.time}>{experience.created_at}</Text>
       </View>
     </TouchableOpacity>

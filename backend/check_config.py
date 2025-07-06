@@ -37,14 +37,14 @@ def check_env_file():
 def check_database_config():
     """检查数据库配置"""
     print("\n📊 数据库配置:")
-    print(f"   主机: {settings.database_host}")
-    print(f"   端口: {settings.database_port}")
-    print(f"   用户: {settings.database_user}")
-    print(f"   数据库: {settings.database_name}")
-    print(f"   测试数据库: {settings.database_test_name}")
+    print(f"   主机: {settings.DATABASE_HOST}")
+    print(f"   端口: {settings.DATABASE_PORT}")
+    print(f"   用户: {settings.DATABASE_USER}")
+    print(f"   数据库: {settings.DATABASE_NAME}")
+    print(f"   测试数据库: {settings.DATABASE_TEST_NAME}")
     
-    if settings.database_url_direct:
-        print(f"   直接URL: {settings.database_url_direct}")
+    if settings.DATABASE_URL_DIRECT:
+        print(f"   直接URL: {settings.DATABASE_URL_DIRECT}")
     else:
         print(f"   构建URL: {settings.database_url}")
 
@@ -54,11 +54,11 @@ def test_database_connection():
     print("\n🔍 测试数据库连接...")
     try:
         conn = pymysql.connect(
-            host=settings.database_host,
-            user=settings.database_user,
-            password=settings.database_password,
-            database=settings.database_name,
-            port=settings.database_port
+            host=settings.DATABASE_HOST,
+            user=settings.DATABASE_USER,
+            password=settings.DATABASE_PASSWORD,
+            database=settings.DATABASE_NAME,
+            port=settings.DATABASE_PORT
         )
         print("✅ 数据库连接成功")
         
@@ -79,11 +79,11 @@ def test_database_connection():
 def check_redis_config():
     """检查 Redis 配置"""
     print("\n🔴 Redis 配置:")
-    print(f"   主机: {settings.redis_host}")
-    print(f"   端口: {settings.redis_port}")
-    print(f"   数据库: {settings.redis_db}")
-    if settings.redis_password:
-        print(f"   密码: {'*' * len(settings.redis_password)}")
+    print(f"   主机: {settings.REDIS_HOST}")
+    print(f"   端口: {settings.REDIS_PORT}")
+    print(f"   数据库: {settings.REDIS_DB}")
+    if settings.REDIS_PASSWORD:
+        print(f"   密码: {'*' * len(settings.REDIS_PASSWORD)}")
     print(f"   URL: {settings.redis_url}")
 
 
@@ -103,11 +103,11 @@ def test_redis_connection():
 def check_other_configs():
     """检查其他配置"""
     print("\n⚙️  其他配置:")
-    print(f"   JWT 密钥: {'*' * len(settings.secret_key)}")
-    print(f"   Token 过期时间: {settings.access_token_expire_minutes} 分钟")
-    print(f"   服务器地址: {settings.host}:{settings.port}")
-    print(f"   调试模式: {settings.debug}")
-    print(f"   CORS 允许源: {settings.allowed_origins}")
+    print(f"   JWT 密钥: {'*' * len(settings.SECRET_KEY)}")
+    print(f"   Token 过期时间: {settings.ACCESS_TOKEN_EXPIRE_MINUTES} 分钟")
+    print(f"   服务器地址: {settings.HOST}:{settings.PORT}")
+    print(f"   调试模式: {settings.DEBUG}")
+    print(f"   CORS 允许源: {settings.ALLOWED_ORIGINS}")
 
 
 def main():
